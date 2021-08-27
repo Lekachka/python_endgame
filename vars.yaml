@@ -1,0 +1,10 @@
+auth:
+- user
+- '123'
+body: null
+endpoint: http://jsonplaceholder.typicode.com/posts/79
+headers:
+  Accept: application/json
+  user-agent: my-app/0.0
+method: GET
+params: null
