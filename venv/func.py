@@ -1,5 +1,6 @@
 import tkinter
 from tkinter import filedialog
+# from widgets import Log_level,Responce_view,Tabs,Frame_url
 
 
 def get_log(data):
@@ -8,7 +9,6 @@ def get_log(data):
     else:
         l_dict = {"auth":{data[0].get():data[1].get()}}
     return l_dict
-
 
 def result_dict(data):
     temp_dict = {}
@@ -20,14 +20,13 @@ def result_dict(data):
         temp_dict.update(temp)
     return temp_dict
 
-
-def extract_text():
-    file_name = filedialog.asksaveasfilename(
-        filetypes=(("TXT files", "*.txt"),
-                   ("JSON files", "*.json"),
-                   ("YAML files", "*.yaml"),
-                   ("All files", "*.*")))
-    f = open(file_name, 'w')
-    #s = text.get(1.0, END)
-    #f.write(s)
-    f.close()
+# def extract_text():
+#     file_name = filedialog.asksaveasfilename(
+#         filetypes=(("TXT files", "*.txt"),
+#                    ("JSON files", "*.json"),
+#                    ("YAML files", "*.yaml"),
+#                    ("All files", "*.*")))
+#     f = open(file_name, 'w')
+#     s = text.get(1.0, END)
+#     f.write(s)
+#     f.close()

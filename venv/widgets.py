@@ -1,8 +1,11 @@
 import tkinter as tk
+import tkinter.ttk
 from tkinter import *
 from tkinter import ttk,messagebox
-from tkinter.ttk import Combobox
+from tkinter.ttk import Combobox,Treeview
+import sqlite3
 from . import func
+
 
 
 class EntryPlaceholder(tk.Entry):
@@ -49,21 +52,21 @@ class EntryPlaceholder(tk.Entry):
         if self.placeholder_on:
             self.icursor(0)
 
-class Tabs(tk.Frame):
-    """Create tabs"""
-
-    def __init__(self, parent):
-        tk.Frame.__init__(self, parent)
-        self.parent = parent
-
-        tab = ttk.Notebook(self.parent)
-        tab.pack(pady=10, expand=True)
-
-        self.frame1 = ttk.Frame(tab, width=300, height=300)
-        tab.add(self.frame1, text="Send request")
-
-        self.frame2 = ttk.Frame(tab, width=300, height=300)
-        tab.add(self.frame2, text="History")
+# class Tabs(tk.Frame):
+#     """Create tabs"""
+# 
+#     def __init__(self, parent):
+#         tk.Frame.__init__(self, parent)
+#         self.parent = parent
+# 
+#         tab = ttk.Notebook(self.parent)
+#         tab.pack(pady=10, expand=True)
+# 
+#         self.frame1 = ttk.Frame(tab, width=300, height=300)
+#         tab.add(self.frame1, text="Send request")
+# 
+#         self.frame2 = ttk.Frame(tab, width=300, height=300)
+#         tab.add(self.frame2, text="History")
 
 
 class Main_labelframe(tk.LabelFrame):
@@ -107,6 +110,7 @@ class Frame_url(tk.Frame):
         self.but1 = tk.Button(self, text='Send', bg='#43b091',width=10,command=self.show_result)
         self.but1.pack(side=LEFT,anchor=N)
         self.but1.bind('<Button-1>', self.qw)
+
 
     def qw(self,event):
 
@@ -295,10 +299,7 @@ def responce(data):
         Responce_view.res = "Pretty JSON"
     elif data.get() == 2:
         Responce_view.res = "YAML"
-    # elif data.get() == 3:
-    #     Response_view.res = "Treeview"
-    # elif data.get() == 4:
-    #     Response_view.res = "Table"
+
 
 
 class Responce_view(tk.Frame):
@@ -322,29 +323,75 @@ class Responce_view(tk.Frame):
         raw.pack(side=LEFT, anchor=W, ipadx=10)
         json.pack(side=LEFT, anchor=W, ipadx=10)
         yaml.pack(side=LEFT, anchor=W,ipadx=10)
-        # debug_treeview = tk.Radiobutton(self, text="Treeview", height=1, width=7, bg='#43b095', variable=var2, indicatoron=0, value=3,command = lambda : response(var2))
-        # debug_treeview.pack(side=LEFT,anchor=W)
-        # debug_table = tk.Radiobutton(self, text="Table", height=1, width=6, bg='#43b095', variable=var2, indicatoron=0, value=4,command = lambda : response(var2))
-        # debug_table.pack(side=LEFT, anchor=W)
 
 class History(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
-        tk.Frame.__init__(self, parent, *args, **kwargs)
-        self.parent=parent
-        clear_histroy = tk.Button(self,text="Clear history")
-        clear_histroy.pack(side=LEFT,padx=10,pady=10)
+    def __init__(self,parent,*args, **kwargs):
+        Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+
+        clear_histroy = tk.Button(self, text="Show History",bg='#43b095', command=self.show_result)
+        # clear_histroy.bind("<Button-1>",self.test1)
+        clear_histroy.pack()
+
+    def show_result(self):
+
+        def exit():
+            root.destroy()
+
+        def update():
+            connect = sqlite3.connect('history.db')
+            cur=connect.cursor()
+            cur.execute('CREATE TABLE IF NOT EXISTS history (N integer primary key, Method text, URL text, Params text,'
+                        ' Headers text, Request_body text, Authentification text, status int , response text);')
+            cur.execute('select * from history;')
+            rows=cur.fetchall()
+            for row in rows:
+                tree.insert("", tk.END, values=row)
+            cur.close()
+            connect.close()
+
+        def clean():
+            connect = sqlite3.connect('history.db')
+            cur = connect.cursor()
+            cur.execute('drop table history;')
+            update()
 
 
-    def addBox(self):
-        frame = Frame(self)
-        frame.pack()
 
-        ent1 = EntryPlaceholder(frame, 'enter apikey')
-        ent2 = EntryPlaceholder(frame, 'enter value')
 
-        ent1.grid(row=1, column=0)
-        ent2.grid(row=1, column=1)
+        root = Toplevel(self.parent)
+        root.title("History")
 
-# class documentMaker():
-#     def test():
-#         return "hello people"
+        tree = tkinter.ttk.Treeview(root,selectmode="extended", column=("c1", "c2", "c3","c4","c5", "c6", "c7","c8","c9"), show='headings')
+
+        tree.heading("#1", text="Number")
+        tree.heading("#2", text="Method")
+        tree.heading("#3", text="URL")
+        tree.heading("#4", text="Params")
+        tree.heading("#5", text="Header")
+        tree.heading("#6", text="Request_body")
+        tree.heading("#7", text="Authentification")
+        tree.heading("#8", text="status")
+        tree.heading("#9", text="responce")
+
+        tree.column("#1",anchor=tk.CENTER,minwidth=0, width=100, stretch = YES)
+        tree.column("#2", anchor=tk.CENTER,minwidth=0, width=100, stretch = YES)
+        tree.column("#3", anchor=tk.CENTER,minwidth=0, width=100, stretch=YES)
+        tree.column("#4", anchor=tk.CENTER,minwidth=0, width=100, stretch=YES)
+        tree.column("#5", anchor=tk.CENTER,minwidth=0, width=100, stretch=YES)
+        tree.column("#6", anchor=tk.CENTER,minwidth=0, width=100, stretch=YES)
+        tree.column("#7", anchor=tk.CENTER,minwidth=0, width=100, stretch=YES)
+        tree.column("#8", anchor=tk.CENTER,minwidth=0, width=100, stretch=YES)
+        tree.column("#9", anchor=tk.CENTER,minwidth=0, width=100, stretch=YES)
+
+        tree.pack()
+
+        b1 = Button(root, text="Закрыть", command=exit, borderwidth=2, width=10, relief='raised')
+        b2 = Button(root, text="Очистить",command=clean, width=10, borderwidth=2, relief='raised')
+        b3 = Button(root, text="Обновить",command=update, width=10, borderwidth=2, relief='raised')
+
+        b1.pack(side=RIGHT, pady=10, padx=10)
+        b2.pack(side=RIGHT, pady=10, padx=10)
+        b3.pack(side=RIGHT, pady=10, padx=10)
+
+        root.mainloop()

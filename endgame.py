@@ -110,18 +110,23 @@ class Req (object):  # Create class for requests
 
 
 def history_show():
+    count_rows = cursor.execute("select count(*) from history;").fetchone()[0]
+    cursor.execute("select * from history;")
+    tabl = cursor.fetchmany(count_rows)
+    for row in tabl:
+        MainTable.add_row([row[0], row[1], row[2], row[3], row[5], row[7]])
     print(MainTable)
     choose = input('Enter request index to view full info, or "q" to quit: ')
     if choose == 'q':
         cursor.close()
         connect.close()
         exit()
-    elif int(choose) <= int(cursor.execute("select count(*) from history;").fetchone()[0]):
+    elif int(choose) <= count_rows:
         data_list = cursor.execute(f'SELECT * FROM history where N={choose};').fetchone()
         history_list = ['N', 'Method', 'URL', 'Params', 'Headers', 'Request body', 'Basic Authentication', 'Status',
                         'Response']
         for i in range(len(data_list)-1):
-            SecondaryTable.add_row(data_list[i], history_list[i])
+            SecondaryTable.add_row([history_list[i], data_list[i]])
         print(SecondaryTable)
         print(f'---Response---\n{data_list[-1]}')
         cursor.close()
@@ -366,14 +371,16 @@ if __name__ == '__main__':
                 N = 0
             met = str(request_dict['method'])
             url = str(request_dict['endpoint'])
-            auth = str(request_dict['auth'])
+            auth = str(json.dumps(request_dict['auth']))
+            code = responce.status_code
             prms = str(json.dumps(request_dict['params'], indent=0))
             hdrs = str(json.dumps(request_dict['headers'], indent=0))
             bdy = str(json.dumps(request_dict['body'], indent=0))
-            rez = str(json.dumps(json.loads(responce.text), indent=2))
-            cursor.execute(f"insert into history values('{N}','{met}','{url}','{prms}','{hdrs}','{bdy}','{auth}','{responce.status_code}','{rez}');")
+            rez = str(json.dumps(json.loads(responce.text), indent=0))[1:-1]
+            data = (N, met, url, prms, hdrs, bdy, auth, code, rez)
+            cursor.execute(f"insert into history values(?, ?, ?, ?, ?, ?, ?, ?, ?);", data)
             connect.commit()
-            MainTable.add_row([N, met, url, prms[1:-1], bdy[1:-1], responce.status_code])
+
             m_logger.info(f'Got response {responce.status_code} {responce.reason } '
                           f'from {req_inst.url} in {responce.elapsed.total_seconds()} seconds')
             print('---Response body---')
