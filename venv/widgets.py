@@ -57,23 +57,6 @@ class EntryPlaceholder(tk.Entry):
             self.icursor(0)
 
 
-# class Tabs(tk.Frame):
-#     """Create tabs"""
-# 
-#     def __init__(self, parent):
-#         tk.Frame.__init__(self, parent)
-#         self.parent = parent
-# 
-#         tab = ttk.Notebook(self.parent)
-#         tab.pack(pady=10, expand=True)
-# 
-#         self.frame1 = ttk.Frame(tab, width=300, height=300)
-#         tab.add(self.frame1, text="Send request")
-# 
-#         self.frame2 = ttk.Frame(tab, width=300, height=300)
-#         tab.add(self.frame2, text="History")
-
-
 class Main_labelframe(tk.LabelFrame):
     """Add widget in Send request"""
 

@@ -11,17 +11,6 @@ import tkinter as tk
 import venv
 
 
-parser = argparse.ArgumentParser(prog='Rest API Client',
-                                 usage='%(prog)s [options]',
-                                 description="Endgame Rest API Client",
-                                 # epilog="Examples:\n" + "\n".join(epilog_examples),
-                                 formatter_class=argparse.RawTextHelpFormatter)
-
-request_dict = {}
-var_file_name = 'vars.yaml'
-full_resp: requests = None
-
-
 def log_basic_config():
     logging.basicConfig(filename='endgame.log',
                         filemode='a',
@@ -31,6 +20,91 @@ def log_basic_config():
 
 
 m_logger = log_basic_config()
+
+
+parser = argparse.ArgumentParser(prog='Rest API Client',
+                                 usage='%(prog)s [options]',
+                                 description="Endgame Rest API Client",
+                                 # epilog="Examples:\n" + "\n".join(epilog_examples),
+                                 formatter_class=argparse.RawTextHelpFormatter)
+
+
+def parce_cli_args():
+    """"Parce the input args, don't check the required hire"""
+    epilog_examples = ['python endgame.py --help',
+                       'python endgame.py --method GET --endpoint https://api.github.com/events',
+                       'python endgame.py -g',
+                       'python endgame.py --method POST --endpoint https://reqres.in/api/users '
+                       '--body name="paul rudd" movies="I Love You" --auth user 123',
+                       'python endgame.py -m GET --endpoint http://jsonplaceholder.typicode.com/posts/79 '
+                       '--headers "user-agent"={@user-agent} "Accept"={@Accept} --auth {@user} {@pass}']
+    parser.epilog = "Examples:\n" + "\n".join(epilog_examples)
+
+    if len(sys.argv) == 1:
+        parser.print_usage()
+        exit()
+
+    parser.add_argument('-g', '--gui',
+                        action='store_true',
+                        dest='gui',
+                        help='set GUI mode',
+                        )
+    parser.add_argument('--history',
+                        choices=['show', 'clear'],
+                        action='store',
+                        help='show/clear history'
+                        )
+    parser.add_argument('-m', '--method',
+                        dest='method',
+                        choices=['GET', 'POST', 'PUT', 'PATH', 'DELETE'],
+                        action='store',
+                        help='set HTTP verb',
+                        default='GET'
+                        )
+    parser.add_argument('-e', '--endpoint',
+                        dest='url',
+                        action='store',
+                        # required=True,
+                        help='set URL'
+                        )
+    parser.add_argument('-p', '--params',
+                        nargs='+',
+                        help='set URL parameters'
+                        )
+    parser.add_argument('--headers',
+                        dest='headers',
+                        nargs='+',
+                        help='set URL headers'
+                        )
+    parser.add_argument('-b', '--body',
+                        nargs='+',
+                        dest='body',
+                        help='set request body in format: "key"="value"'
+                        )
+    parser.add_argument('-a', '--auth',
+                        action='store',
+                        nargs=2,
+                        dest='auth',
+                        metavar=("USER", "PASSWORD"),
+                        help='set Username and Password'
+                        )
+    parser.add_argument('-l', '--log',
+                        choices=['WORNING', 'INFO', 'DEBUG'],
+                        help='Set logging level'
+                        )
+    parser.add_argument('-v', '--view',
+                        help='Set recponce view',
+                        choices=['json', 'yaml', 'txt', 'tree'],
+                        default='json',
+                        dest='view'
+                        )
+    return parser.parse_args()
+
+
+pars_args = parce_cli_args()
+request_dict = {}  # API Request params dictionary
+var_file_name = 'vars.yaml'
+full_resp: requests = None
 
 
 def print_view(resp, view='json', gui=False):
@@ -46,6 +120,7 @@ def print_view(resp, view='json', gui=False):
 
 
 def vars_from_files(file_name: str):
+    """Loads variables for yaml file"""
     try:
         with open(file_name, 'r') as yaml_file:
             return yaml.safe_load(yaml_file)
@@ -119,6 +194,15 @@ class Req (object):
         else:
             return True
 
+    #def _decorator(meth):
+    #    def magic(self):
+    #        if not self.check_url():
+    #            print('The site URL format is invalid')
+            #else:
+    #        #    meth(self)
+    #    return magic
+
+    #@_decorator
     def get_request(self):                              # Create get method
         if self.check_url():
             resp = requests.get(self.url,
@@ -130,6 +214,8 @@ class Req (object):
             return resp, ''
         else:
             return False, 'The site URL format is invalid'
+
+    #_decorator = staticmethod(_decorator)
 
     def put_request(self):                              # Create put method
         if self.check_url():
@@ -241,81 +327,9 @@ def gui_start(diction, view):
     root = tk.Tk()
     venv.MainApplication(root).pack(side="top", fill="both", expand=True)
     root.title("END GAME")
+    root.resizable(False, False)
     root.mainloop()
     sys.exit(2)
-
-
-def parce_cli_args():
-    """"Parce the input args, don't check the required hire"""
-    epilog_examples = ['python endgame.py --help',
-                       'python endgame.py --method GET --endpoint https://api.github.com/events',
-                       'python endgame.py -g',
-                       'python endgame.py --method POST --endpoint https://reqres.in/api/users '
-                       '--body name="paul rudd" movies="I Love You" --auth user 123',
-                       'python endgame.py -m GET --endpoint http://jsonplaceholder.typicode.com/posts/79 '
-                       '--headers "user-agent"={@user-agent} "Accept"={@Accept} --auth {@user} {@pass}']
-    parser.epilog = "Examples:\n" + "\n".join(epilog_examples)
-
-    if len(sys.argv) == 1:
-        parser.print_usage()
-        exit()
-
-    parser.add_argument('-g', '--gui',
-                        action='store_true',
-                        dest='gui',
-                        help='set GUI mode',
-                        )
-    parser.add_argument('--history',
-                        choices=['show', 'clear'],
-                        action='store',
-                        help='show/clear history'
-                        )
-    parser.add_argument('-m', '--method',
-                        dest='method',
-                        choices=['GET', 'POST', 'PUT', 'PATH', 'DELETE'],
-                        action='store',
-                        help='set HTTP verb',
-                        default='GET'
-                        )
-    parser.add_argument('-e', '--endpoint',
-                        dest='url',
-                        action='store',
-                        # required=True,
-                        help='set URL'
-                        )
-    parser.add_argument('-p', '--params',
-                        nargs='+',
-                        help='set URL parameters'
-                        )
-    parser.add_argument('--headers',
-                        dest='headers',
-                        nargs='+',
-                        help='set URL headers'
-                        )
-    parser.add_argument('-b', '--body',
-                        nargs='+',
-                        dest='body',
-                        help='set request body in format: "key"="value"'
-                        )
-    parser.add_argument('-a', '--auth',
-                        action='store',
-                        nargs=2,
-                        dest='auth',
-                        metavar=("USER", "PASSWORD"),
-                        help='set Username and Password'
-                        )
-    parser.add_argument('-l', '--log',
-                        choices=['WORNING', 'INFO', 'ERROR', 'DEBUG'],
-                        help='Set logging level'
-                        )
-    parser.add_argument('-v', '--view',
-                        help='Set recponce view',
-                        choices=['json', 'yaml', 'txt', 'tree'],
-                        default='json',
-                        dest='view'
-                        )
-
-    return parser.parse_args()
 
 
 def create_request_dict():
@@ -410,31 +424,22 @@ def run_query(inp_dict: dict, inp_req_inst):
     return my_resp, l_mess
 
 
-if __name__ == '__main__':
-    pars_args = parce_cli_args()
-
-    if pars_args.log:                                       # set log level to user defined if arg exists, else set INFO
+def cli():
+    if pars_args.log:  # set log level to user defined if arg exists, else set INFO
         m_logger.setLevel(pars_args.log)
     else:
         m_logger.setLevel(logging.INFO)
 
-    if pars_args.history:                                   # run History show or cleaning if arg exists
+    if pars_args.history:  # run History show or cleaning if arg exists
         history = pars_args.history
         method_history = {
             'show': history_show,
             'clear': history_clear
         }
         method_history[history]()
-
-    request_dict = create_request_dict()                    # Create dictionary for request paramiters
-
-    req_inst = Req(request_dict, pars_args.view)                            # create Request class instance
-
-    if pars_args.gui:                                       # start GUI mode
-        gui_start(req_inst.method_dict, pars_args.view)
-
+    request_dict = create_request_dict()  # Create dictionary for request paramiters
+    req_inst = Req(request_dict, pars_args.view)  # create Request class instance
     m_logger.info(f'Send {req_inst.method} request to {req_inst.url}')
-
     try:
         full_resp, mess = run_query(request_dict, req_inst)
         if full_resp:
@@ -456,3 +461,10 @@ if __name__ == '__main__':
             print(full_resp.text)
     except Exception as e:
         print_stderr(f'<{req_inst.method}> request Faild.\n       {e}')
+
+
+if __name__ == '__main__':
+    if pars_args.gui:                                       # start GUI mode
+        gui_start(req_inst.method_dict, pars_args.view)
+    else:
+        cli()                                               # start CLI mode

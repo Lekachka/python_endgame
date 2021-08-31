@@ -9,9 +9,6 @@ class MainApplication(tk.Frame):
         self.parent = parent
         tk.Label(self.parent, text='Rest Api request').pack(side="top", anchor='nw')
 
-        # self.tabs = Tabs(self)
-        # self.tabs.pack(side='top', anchor="nw")
-
         self.frame_url = Frame_url(self)
         self.frame_url.pack(side=TOP, pady=10, anchor=NW)
 
