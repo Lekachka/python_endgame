@@ -1,5 +1,5 @@
 import tkinter
-from tkinter import filedialog
+# from tkinter import filedialog
 # from widgets import Log_level,Responce_view,Tabs,Frame_url
 
 
@@ -9,6 +9,7 @@ def get_log(data):
     else:
         l_dict = {"auth":{data[0].get():data[1].get()}}
     return l_dict
+
 
 def result_dict(data):
     temp_dict = {}
