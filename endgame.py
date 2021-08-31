@@ -140,14 +140,15 @@ def change_hidden_var(diction: dict):
         elif i and isinstance(i, dict):  # Если .. и явл. Словарём - перебираем значения
             for y, z in i.items():  # вложенного словаря.
                 if z and isinstance(z, str) and re.search(r"{@.+}", z):
-                    new_item = str(yaml_loaded_dict.get(k, None)[y])
+                    new_item = str(yaml_loaded_dict.get(k, None).get(y, None))
                     if new_item:
                         i.update({y: new_item})
         elif i and isinstance(i, list):  # Если значение словаря сущ-т, явл. Списком
             for y, z in enumerate(i):  # и содержится в {@} - меняем в списке скрытое
                 if re.search(r"{@.+}", z):  # значение на значение из файла
-                    i[y] = str(yaml_loaded_dict.get(k, None)[y])
-                    local_request_dict.update({k: i})
+                    if yaml_loaded_dict.get(k, None):
+                        i[y] = str(yaml_loaded_dict.get(k, None)[y])
+                        local_request_dict.update({k: i})
 
     return local_request_dict
 
