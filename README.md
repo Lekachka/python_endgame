@@ -11,22 +11,27 @@ Provides CLI and GUI interfaces. The CLI interface is default one.
 
 ## Prerequisites
 
-Python3.x should be installed in the system.
+Python3.x should be installed in the system.  
 
-Use istractions from offisial site for installation: https://www.python.org/downloads/
+Use instructions from official site for installation: https://www.python.org/downloads/
 
 Another needed packages should be istalled:  
-pip install prettytable  
-pip install pyyaml  
-pip install tkinter  
+
+*pip install prettytable*  
+*pip install pyyaml*  
+*pip install tkinter*  
 
 ## Usage
 Program is runnig under console with user defined arguments.  
-To run GUI interface use -g (--gui) param, otherwise define request parameters and optionally log level and/or response view.  
-Also, you can see or clear request history in both CLI and GUI mode using --history show/clear arguments in CLI mode or pressing .  
-You can use hidden parameters in both mode using {@dictionary_key} instead of dictionary value if parameter was used in previous request. 
-Run program help with -h (--help) argument for show program help.
-Using GUI 
+
+usage:  
+*python3 endgame.py* ***[options]***
+
+To run **GUI** interface use *-g* (*--gui*) param, otherwise define request parameters and optionally log level and/or response view.  
+Also, you can see or clear request history in both **CLI** and **GUI** mode using *--history show/clear* arguments in **CLI** mode or pressing *Show History* button in **GUI**.  
+You can use hidden parameters in both mode using *{@dictionary_key}* instead of dictionary value if parameter was used in previous request. The paramerters could be: 
+*endpoint*, *method*, *header values*, *user* and *password*.  
+Run program help with *-h* (*--help*) argument for show all available options.
 
 ```
 optional arguments:
