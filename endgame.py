@@ -56,7 +56,7 @@ def parce_cli_args():
                         )
     parser.add_argument('-m', '--method',
                         dest='method',
-                        choices=['GET', 'POST', 'PUT', 'PATH', 'DELETE'],
+                        choices=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
                         action='store',
                         help='set HTTP verb',
                         default='GET'
