@@ -186,40 +186,30 @@ class Req (object):
             r'(?::\d+)?'  # optional port
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         if not self.url:
-            m_logger.error('Rest API Client: error: the following arguments are required: -e/--endpoint')
-            print_stderr('Rest API Client: error: the following arguments are required: -e/--endpoint')
+            m = 'Rest API Client: error: the following arguments are required: -e/--endpoint'
+            #m_logger.error('m')
+            return False, m
         elif not re.match(regex, self.url):
-            m_logger.error(f'URL {self.url} is invalid')
-            #sys.exit(1)
-            return False
+            m = f'URL {self.url} is invalid'
+            return False, m
         else:
-            return True
+            return True, ''
 
-    #def _decorator(meth):
-    #    def magic(self):
-    #        if not self.check_url():
-    #            print('The site URL format is invalid')
-            #else:
-    #        #    meth(self)
-    #    return magic
-
-    #@_decorator
     def get_request(self):                              # Create get method
-        if self.check_url():
+        url_ck, m = self.check_url()
+        if url_ck:
             resp = requests.get(self.url,
                                 params=(self.params or self.body),
-                                #auth=None if not self.auth else (self.auth['username'], self.auth['password']),
                                 auth=None if not self.auth else (self.auth[0], self.auth[1]),
                                 headers=None if not self.headers else self.headers
                                 )
             return resp, ''
         else:
-            return False, 'The site URL format is invalid'
-
-    #_decorator = staticmethod(_decorator)
+            return False, m
 
     def put_request(self):                              # Create put method
-        if self.check_url():
+        url_ck, m = self.check_url()
+        if url_ck:
             resp = requests.put(self.url,
                                 data=(self.params or self.body),
                                 auth=None if not self.auth else (self.auth[0], self.auth[1]),
@@ -227,10 +217,11 @@ class Req (object):
                                 )
             return resp, ''
         else:
-            return False, 'The site URL format is invalid'
+            return False, m
 
     def del_request(self):                              # Create del method
-        if self.check_url():
+        url_ck, m = self.check_url()
+        if url_ck:
             resp = requests.delete(self.url,
                                    params=(self.params or self.body),
                                    auth=None if not self.auth else (self.auth[0], self.auth[1]),
@@ -238,10 +229,11 @@ class Req (object):
                                    )
             return resp, ''
         else:
-            return False, 'The site URL format is invalid'
+            return False, m
 
     def patch_request(self):                            # Create patch method
-        if self.check_url():
+        url_ck, m = self.check_url()
+        if url_ck:
             resp = requests.patch(self.url,
                                   params=(self.params or self.body),
                                   auth=None if not self.auth else (self.auth[0], self.auth[1]),
@@ -249,10 +241,11 @@ class Req (object):
                                   )
             return resp, ''
         else:
-            return False, 'The site URL format is invalid'
+            return False, m
 
     def post_request(self):                             # Create post method
-        if self.check_url():
+        url_ck, m = self.check_url()
+        if url_ck:
             resp = requests.post(self.url,
                                  data=(self.params or self.body),
                                  auth=None if not self.auth else (self.auth[0], self.auth[1]),
@@ -260,7 +253,7 @@ class Req (object):
                                  )
             return resp, ''
         else:
-            return False, 'The site URL format is invalid'
+            return False, m
 
 
 req_inst = Req(request_dict, None)  # create Request class instance
@@ -324,7 +317,7 @@ def history_clear():
     exit()
 
 
-def gui_start(diction, view):
+def gui_start():
     root = tk.Tk()
     venv.MainApplication(root).pack(side="top", fill="both", expand=True)
     root.title("END GAME")
@@ -384,15 +377,12 @@ def run_query(inp_dict: dict, inp_req_inst):
     my_resp: requests
     tem_dict = {}
     my_resp, l_mess = inp_req_inst.method_dict[inp_req_inst.method]()           # Run needed method with Req instance
-
-    if my_resp and not my_resp.ok:
+    my_resp.raise_for_status()
+    if my_resp is not None and not my_resp.ok:
         m_logger.error(f'Request to {inp_req_inst.url} is faild. '
                        f'Error code {my_resp.status_code} {my_resp.reason}')
-        l_mess = (f'Request to {inp_req_inst.url} is faild. '
+        l_mess = (f'Request to {inp_req_inst.url} is failed. '
                   f'Error code {my_resp.status_code} {my_resp.reason}')
-    elif not my_resp:
-        m_logger.error('The site URL format is invalid')
-        l_mess = ('The site URL format is invalid')
     elif my_resp:
         try:
             for i in ['auth', 'body', 'headers', 'method', 'params', 'url']:
@@ -439,33 +429,34 @@ def cli():
         }
         method_history[history]()
     request_dict = create_request_dict()  # Create dictionary for request paramiters
-    req_inst = Req(request_dict, pars_args.view)  # create Request class instance
-    m_logger.info(f'Send {req_inst.method} request to {req_inst.url}')
+    local_inst = Req(request_dict, pars_args.view)  # create Request class instance
+    m_logger.info(f'Send {local_inst.method} request to {local_inst.url}')
+    local_resp: requests = None
     try:
-        full_resp, mess = run_query(request_dict, req_inst)
-        if full_resp:
-            print(f'---Got response {full_resp.status_code} {full_resp.reason} '
-                  f'in {str(round(full_resp.elapsed.total_seconds(), 2))} seconds---')
+        local_resp, mess = run_query(request_dict, local_inst)
+        if local_resp:
+            print(f'---Got response {local_resp.status_code} {local_resp.reason} '
+                  f'in {str(round(local_resp.elapsed.total_seconds(), 2))} seconds---')
             print('---Response body---')
-            print(print_view(full_resp, pars_args.view, pars_args.gui))
+            print(print_view(local_resp, pars_args.view, pars_args.gui))
         else:
             print_stderr(mess)
             pass
     except requests.exceptions.RequestException as e:
-        m_logger.error(f'<{req_inst.method}> request Faild with error:           {e}')
-        print_stderr(f'<{req_inst.method}> request Faild.\n       {e}')
+        m_logger.error(f'<{local_inst.method}> request Faild with error:           {e}')
+        print_stderr(f'<{local_inst.method}> request Faild.\n       {e}')
     except json.decoder.JSONDecodeError as e:               # Can not decode responce to json format
         if pars_args.view and pars_args.view == 'json':     # if JSON is used as 'view' argument show errors
             m_logger.error('json deconding error')
             print_stderr('json deconding error')
-        if full_resp:
-            print(full_resp.text)
+        if local_resp is not None and local_inst:
+            print(local_resp.text)
     except Exception as e:
-        print_stderr(f'<{req_inst.method}> request Faild.\n       {e}')
+        print_stderr(f'<{local_inst.method}> request Faild.\n       {e}')
 
 
 if __name__ == '__main__':
     if pars_args.gui:                                       # start GUI mode
-        gui_start(req_inst.method_dict, pars_args.view)
+        gui_start()
     else:
         cli()                                               # start CLI mode

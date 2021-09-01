@@ -163,7 +163,7 @@ class Frame_url(tk.Frame):
             else:
                 text.insert(1.0, mess)
         except requests.exceptions.RequestException as e:
-            m_logger.error(f'<{self.req_inst.method}> request Faild.\n           {e}')
+            m_logger.error(f'<{self.req_inst.method}> request Faild with error:           {e}')
             text.insert(1.0, f'<{self.req_inst.method}> request Faild.\n       {e}')
         except json.decoder.JSONDecodeError as e:  # Can not decode responce to json format
             if Responce_view.res == 'json':  # if JSON is used as 'view' argument show errors
